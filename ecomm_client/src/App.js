@@ -10,6 +10,7 @@ const Login = lazy(() => import("./pages/Common/Login"));
 const Dashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const ManageCategory = lazy(() => import("./pages/Admin/ManageCategory"));
 const ManageProduct = lazy(() => import("./pages/Admin/ManageProduct"));
+const ManageOrder = lazy(() => import("./pages/Admin/ManageOrder"));
 const ManageUser = lazy(() => import("./pages/Admin/ManageUser"));
 const RequireRole = lazy(() => import("./components/RequireRole"));
 const SearchPage = lazy(() => import("./pages/Product/SearchPage"));
@@ -73,6 +74,7 @@ function App() {
             >
               <Route path="category" element={<ManageCategory />} />
               <Route path="product" element={<ManageProduct />} />
+              <Route path="order" element={<ManageOrder />} />
               <Route path="user" element={<ManageUser />} />
             </Route>
           </Routes>

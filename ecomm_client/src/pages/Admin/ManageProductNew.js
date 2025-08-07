@@ -52,23 +52,34 @@ const ManageProduct = () => {
   };
 
   // Render breadcrumb
-  const renderBreadcrumb = () => (
-    <Breadcrumb className="mb-4">
-      <Breadcrumb.Item>
-        <HomeOutlined />
-        <span>Admin</span>
-      </Breadcrumb.Item>
-      <Breadcrumb.Item>
-        <AppstoreOutlined />
-        <span>Products</span>
-      </Breadcrumb.Item>
-      {currentView !== "list" && (
-        <Breadcrumb.Item>
-          {currentView === "create" ? "Add Product" : "Edit Product"}
-        </Breadcrumb.Item>
-      )}
-    </Breadcrumb>
-  );
+  const renderBreadcrumb = () => {
+    const items = [
+      {
+        title: (
+          <span>
+            <HomeOutlined />
+            <span style={{ marginLeft: 8 }}>Admin</span>
+          </span>
+        ),
+      },
+      {
+        title: (
+          <span>
+            <AppstoreOutlined />
+            <span style={{ marginLeft: 8 }}>Products</span>
+          </span>
+        ),
+      },
+    ];
+
+    if (currentView !== "list") {
+      items.push({
+        title: currentView === "create" ? "Add Product" : "Edit Product",
+      });
+    }
+
+    return <Breadcrumb className="mb-4" items={items} />;
+  };
 
   if (currentView === "list") {
     return (

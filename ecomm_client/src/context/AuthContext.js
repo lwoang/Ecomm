@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
           return;
         }
         if (!token) {
-          setUser(); // No token, no need to fetch
+          setUser(null); // No token, set user to null explicitly
           return;
         }
         const response = await userApi.getUser();

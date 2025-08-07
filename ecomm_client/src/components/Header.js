@@ -109,7 +109,7 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 shadow-md">
-      <nav className="bg-white border-gray-200 px-4 lg:px-6 py-2.5">
+      <nav className="bg-white border-gray-200 px-4 lg:px-6 py-1.5">
         <div className="flex items-center justify-between max-w-screen-xl mx-auto">
           <button
             className="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none"
@@ -174,7 +174,7 @@ const Header = () => {
             ))}
           </div>
         </motion.div>
-        <nav className="px-4 sm:px-6 lg:px-8 py-3">
+        <nav className="px-4 sm:px-6 lg:px-8 py-2">
           <div className="flex flex-wrap items-center justify-between mx-auto max-w-screen-xl">
             <div className="flex-shrink-0">
               <Logo />
@@ -185,7 +185,7 @@ const Header = () => {
                 type="button"
                 onClick={() => navigate("/cart")}
                 aria-label="Cart"
-                className="group relative ml-4 p-3 rounded-2xl bg-white border border-black shadow-[inset_0_0_4px_#fff,0_4px_12px_rgba(0,0,0,0.1)] hover:opacity-80 active:bg-black active:border-white active:text-white active:shadow-inner transition-all duration-300 ease-out transform hover:-translate-y-1 active:translate-y-0.5"
+                className="group relative ml-4 p-2 rounded-2xl bg-white border border-black shadow-[inset_0_0_4px_#fff,0_4px_12px_rgba(0,0,0,0.1)] hover:opacity-80 active:bg-black active:border-white active:text-white active:shadow-inner transition-all duration-300 ease-out transform hover:-translate-y-1 active:translate-y-0.5"
                 style={{
                   backgroundColor: "#ffffff",
                   borderColor: "#000000",

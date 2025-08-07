@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import userApi from "../../api/userApi";
 import orderApi from "../../api/orderApi"; // Import the orderApi
 import {
@@ -80,7 +80,7 @@ const ProfilePage = () => {
   }, []);
 
   // Fetch orders
-  const fetchOrders = async (pageToFetch) => {
+  const fetchOrders = useCallback(async (pageToFetch) => {
     try {
       setIsLoadingOrders(true);
       const response = await orderApi.getOrdersByUser(pageToFetch, limit);
@@ -98,12 +98,12 @@ const ProfilePage = () => {
     } finally {
       setIsLoadingOrders(false);
     }
-  };
+  }, [limit]);
 
   // Initial fetch for orders
   useEffect(() => {
     fetchOrders(1);
-  }, []);
+  }, [fetchOrders]);
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -120,16 +120,18 @@ const ProfilePage = () => {
       { threshold: 0.1 }
     );
 
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
+    const currentObserverRef = observerRef.current;
+
+    if (currentObserverRef) {
+      observer.observe(currentObserverRef);
     }
 
     return () => {
-      if (observerRef.current) {
-        observer.unobserve(observerRef.current);
+      if (currentObserverRef) {
+        observer.unobserve(currentObserverRef);
       }
     };
-  }, [isLoadingOrders, page, totalPages]);
+  }, [isLoadingOrders, page, totalPages, fetchOrders]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -716,7 +718,7 @@ const ProfilePage = () => {
                             strong
                             className="text-lg sm:text-xl text-gray-900"
                           >
-                            Order #{order._id.slice(-8)}
+                            Order #{(order._id || "").slice(-8) || "N/A"}
                           </Text>
                           <br />
                           <Text
@@ -724,7 +726,7 @@ const ProfilePage = () => {
                             className="text-sm sm:text-base"
                           >
                             Placed on:{" "}
-                            {new Date(order.createdAt).toLocaleDateString(
+                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString(
                               "en-US",
                               {
                                 year: "numeric",
@@ -733,30 +735,30 @@ const ProfilePage = () => {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               }
-                            )}
+                            ) : "Date not available"}
                           </Text>
                         </div>
                         <div className="mt-2 sm:mt-0">
                           <Text
                             className={`inline-block px-3 py-1.5 rounded-full text-sm font-medium ${
-                              order.order_status === "completed"
+                              (order.order_status || "") === "completed"
                                 ? "bg-green-100 text-green-700"
-                                : order.order_status === "pending"
+                                : (order.order_status || "") === "pending"
                                 ? "bg-yellow-100 text-yellow-700"
                                 : "bg-red-100 text-red-700"
                             }`}
                           >
-                            {order.order_status.charAt(0).toUpperCase() +
-                              order.order_status.slice(1)}
+                            {(order.order_status || "unknown").charAt(0).toUpperCase() +
+                              (order.order_status || "unknown").slice(1)}
                           </Text>
                         </div>
                       </div>
                       <Text className="text-lg font-semibold text-gray-900 block mb-4">
-                        Total: ${order.total_amount.toFixed(2)}
+                        Total: ${(order.total_amount || 0).toFixed(2)}
                       </Text>
                       {/* Order Details */}
                       <div className="space-y-5">
-                        {order.details.map((detail) => (
+                        {(order.details || []).map((detail) => (
                           <div
                             key={detail._id}
                             className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 bg-gray-50 p-4 rounded-md hover:bg-gray-100 transition-colors duration-200"
@@ -768,7 +770,7 @@ const ProfilePage = () => {
                                   src={detail.images[0].imageUrl}
                                   alt={
                                     detail.images[0].altText ||
-                                    detail.product_id.name
+                                    (detail.product_id?.name || "Product")
                                   }
                                   className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border border-gray-200 shadow-sm"
                                   onError={(e) => {
@@ -793,34 +795,34 @@ const ProfilePage = () => {
                                 strong
                                 className="text-base sm:text-lg text-gray-900 hover:text-blue-600 transition-colors"
                               >
-                                {detail.product_id.name}
+                                {detail.product_id?.name || "Product Name Not Available"}
                               </Text>
                               <br />
                               <Text type="secondary" className="text-sm">
-                                {detail.variation_id.size} -{" "}
-                                {detail.variation_id.color}
+                                {detail.variation_id?.size || "N/A"} -{" "}
+                                {detail.variation_id?.color || "N/A"}
                               </Text>
                               <br />
                               <div className="flex items-center gap-4 mt-1">
                                 <Text className="text-sm">
                                   Quantity:{" "}
                                   <span className="font-medium">
-                                    {detail.quantity}
+                                    {detail.quantity || 0}
                                   </span>
                                 </Text>
                                 <Text className="text-sm">
                                   Price:{" "}
                                   <span className="font-medium">
-                                    ${detail.price_at_purchase.toFixed(2)}
+                                    ${(detail.price_at_purchase || 0).toFixed(2)}
                                   </span>
                                 </Text>
                               </div>
                               <Text
                                 type="secondary"
                                 className="text-sm block mt-2 line-clamp-3 sm:line-clamp-2"
-                                title={detail.product_id.description}
+                                title={detail.product_id?.description || "No description"}
                               >
-                                {detail.product_id.description}
+                                {detail.product_id?.description || "No description available"}
                               </Text>
                             </div>
                           </div>

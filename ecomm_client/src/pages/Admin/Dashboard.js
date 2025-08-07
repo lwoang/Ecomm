@@ -4,6 +4,7 @@ import {
   TagsOutlined,
   UserOutlined,
   MenuUnfoldOutlined,
+  ShoppingCartOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -33,6 +34,11 @@ const adminMenu = [
     key: "product",
     icon: <AppstoreOutlined />,
     label: <Link to="/admin/product">Manage Product</Link>,
+  },
+  {
+    key: "order",
+    icon: <ShoppingCartOutlined />,
+    label: <Link to="/admin/order">Manage Order</Link>,
   },
   {
     key: "user",

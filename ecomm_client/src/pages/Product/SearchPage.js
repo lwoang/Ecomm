@@ -223,7 +223,7 @@ const SearchPage = () => {
                                   </div>
                                   <div className="text-gray-500 font-sans text-left text-xs flex items-center gap-1">
                                     <EnvironmentOutlined className="text-xs" />
-                                    <span>Ho Chi Minh City</span>
+                                    <span>Ha Noi, Vietnam</span>
                                   </div>
                                 </div>
                               </div>

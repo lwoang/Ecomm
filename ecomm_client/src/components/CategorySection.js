@@ -14,8 +14,8 @@ const CategorySection = () => {
     'Shoes': 'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
     'Accessories': 'https://images.unsplash.com/photo-1523170335258-f5c6c6bd6edb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
     'Bags': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'Jewelry': 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'default': 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+    'Jewelry': 'https://cloud.huythanhjewelry.vn/storage/photos/shares/01upload/1752459237888/mdz070bac9251_1752477586.jpg',
+    'default': 'https://media.istockphoto.com/id/931055460/photo/little-girl-getting-ready-for-school.webp?a=1&b=1&s=612x612&w=0&k=20&c=o9oioQP-kTCEUMNxxhGFXPNwid3VxAmFMIMV8yK3kvw='
   };
 
   useEffect(() => {

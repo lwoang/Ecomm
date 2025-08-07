@@ -231,6 +231,20 @@ const ProductDetailPage = () => {
                     />
                   </div>
 
+                  {/* Product Description */}
+                  {product.description && (
+                    <div className="mb-6 text-left">
+                      <Text className="text-gray-900 font-sans text-lg font-medium mb-3 block">
+                        Description
+                      </Text>
+                      <div className="bg-gray-50 p-4 rounded-none border-l-4 border-gray-400">
+                        <Text className="text-gray-700 font-sans leading-relaxed">
+                          {product.description}
+                        </Text>
+                      </div>
+                    </div>
+                  )}
+
                   {product.variations.length > 0 && (
                     <div className="mb-6 text-left">
                       <Text className="text-gray-900 font-sans text-lg">

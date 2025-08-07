@@ -5,6 +5,7 @@ import CartItem from "../models/cartItem.model.js";
 import Product from "../models/product.model.js";
 import ProductImage from "../models/productImage.model.js";
 import Address from "../models/address.model.js";
+import User from "../models/user.model.js";
 import mongoose from "mongoose";
 
 export const createOrder = async (req, res) => {
@@ -223,6 +224,235 @@ export const getOrdersByUser = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Server error",
+    });
+  }
+};
+
+// Admin functions
+export const getAllOrdersAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
+    const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 10;
+    const skip = (page - 1) * limit;
+    
+    let filter = {};
+    
+    // Filter by status
+    if (req.query.status && req.query.status !== 'all') {
+      filter.status = req.query.status;
+    }
+    
+    // Filter by date range
+    if (req.query.startDate || req.query.endDate) {
+      filter.createdAt = {};
+      if (req.query.startDate) {
+        filter.createdAt.$gte = new Date(req.query.startDate);
+      }
+      if (req.query.endDate) {
+        filter.createdAt.$lte = new Date(req.query.endDate + 'T23:59:59.999Z');
+      }
+    }
+
+    // Search functionality
+    let userFilter = {};
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, 'i');
+      const users = await User.find({
+        $or: [
+          { username: searchRegex },
+          { email: searchRegex }
+        ]
+      }).select('_id');
+      
+      if (users.length > 0) {
+        userFilter.user_id = { $in: users.map(user => user._id) };
+      } else {
+        // If no users found, search in order IDs
+        if (mongoose.Types.ObjectId.isValid(req.query.search)) {
+          filter._id = req.query.search;
+        }
+      }
+    }
+
+    const finalFilter = { ...filter, ...userFilter };
+    
+    const totalOrders = await Order.countDocuments(finalFilter);
+    
+    const orders = await Order.find(finalFilter)
+      .populate({
+        path: 'user_id',
+        model: User,
+        select: 'username email'
+      })
+      .populate({
+        path: 'address_id',
+        model: Address,
+        select: 'street city state zipCode phone'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get order details for each order
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        const details = await OrderDetail.find({ order_id: order._id })
+          .populate({
+            path: "product_id",
+            model: Product,
+            select: "name description price"
+          })
+          .populate({
+            path: "variation_id",
+            model: ProductVariation,
+            select: "size color price"
+          })
+          .lean();
+
+        return {
+          _id: order._id,
+          user: order.user_id,
+          shippingAddress: order.address_id,
+          totalAmount: order.total_amount,
+          status: order.status || 'pending',
+          paymentStatus: order.payment_status || 'pending',
+          items: details,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt
+        };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      orders: ordersWithDetails,
+      total: totalOrders,
+      page,
+      limit,
+      totalPages: Math.ceil(totalOrders / limit)
+    });
+  } catch (error) {
+    console.error('Error in getAllOrdersAdmin:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error"
+    });
+  }
+};
+
+export const getOrderStatisticsAdmin = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+    
+    const revenueResult = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: "$total_amount" } } }
+    ]);
+    const totalRevenue = revenueResult[0]?.total || 0;
+    
+    const pendingOrders = await Order.countDocuments({ 
+      status: { $in: ['pending', 'confirmed', 'processing'] }
+    });
+    
+    const completedOrders = await Order.countDocuments({ 
+      status: 'delivered' 
+    });
+
+    return res.status(200).json({
+      success: true,
+      statistics: {
+        totalOrders,
+        totalRevenue,
+        pendingOrders,
+        completedOrders
+      }
+    });
+  } catch (error) {
+    console.error('Error in getOrderStatisticsAdmin:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error"
+    });
+  }
+};
+
+export const updateOrderStatusAdmin = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    
+    const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+    
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.error('Error in updateOrderStatusAdmin:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error"
+    });
+  }
+};
+
+export const deleteOrderAdmin = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
+  try {
+    const { orderId } = req.params;
+    
+    // Delete order details first
+    await OrderDetail.deleteMany({ order_id: orderId }).session(session);
+    
+    // Delete the order
+    const deletedOrder = await Order.findByIdAndDelete(orderId).session(session);
+    
+    if (!deletedOrder) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Order deleted successfully'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    
+    console.error('Error in deleteOrderAdmin:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error"
     });
   }
 };
