@@ -44,7 +44,7 @@ export const generatePaymentUrl = async (req, res) => {
   const tmnCode = process.env.VNP_TMN_CODE;
   const secretKey = process.env.VNP_HASH_SECRET;
   const vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl = process.env.FRONTEND_URL;
   const returnUrl = `${frontendUrl}/payment-callback`;
 
   // Cac tham so VNPay
